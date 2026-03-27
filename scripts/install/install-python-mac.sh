@@ -50,6 +50,45 @@ install_uv() {
     print_success "uv 安装完成"
 }
 
+check_broken_python() {
+    print_info "检查系统中损坏的 Python 安装..."
+    
+    local broken_pythons=()
+    
+    if [[ -f /usr/local/bin/python ]]; then
+        if ! /usr/local/bin/python --version &>/dev/null; then
+            broken_pythons+=("/usr/local/bin/python")
+        fi
+    fi
+    
+    if [[ ${#broken_pythons[@]} -gt 0 ]]; then
+        print_warning "发现损坏的 Python 安装:"
+        for p in "${broken_pythons[@]}"; do
+            echo "  - $p"
+        done
+        echo ""
+        echo -e "${YELLOW}这些损坏的安装可能导致冲突。建议移除:${NC}"
+        echo ""
+        for p in "${broken_pythons[@]}"; do
+            echo "  sudo mv $p ${p}.broken"
+        done
+        echo ""
+        read -p "是否现在处理? (需要 sudo 密码) (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            for p in "${broken_pythons[@]}"; do
+                sudo mv "$p" "${p}.broken" 2>/dev/null && \
+                    print_success "已备份: ${p}.broken" || \
+                    print_warning "无法移动 $p，请手动处理"
+            done
+        else
+            print_warning "跳过处理。如果后续出现问题，请手动执行上述命令。"
+        fi
+    else
+        print_success "未发现损坏的 Python 安装"
+    fi
+}
+
 configure_shell() {
     print_info "配置 Shell 环境..."
     
@@ -66,6 +105,7 @@ configure_shell() {
         echo '' >> "$shell_rc"
         echo '# uv Python configuration' >> "$shell_rc"
         echo 'export UV_PYTHON_PREFERENCE=only-managed' >> "$shell_rc"
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$shell_rc"
         print_success "已添加 uv 配置到 $shell_rc"
     else
         print_success "uv 配置已存在"
@@ -74,7 +114,7 @@ configure_shell() {
 
 install_python() {
     print_info "安装 Python..."
-    
+    uv python install 3.13
     uv python install 3.12
     uv python install 3.11
     
@@ -84,7 +124,7 @@ install_python() {
 set_default_python() {
     print_info "设置默认 Python 版本..."
     
-    uv python pin 3.12 --global
+    uv python pin 3.12 -- --global
     
     local python_version=$(uv python find 3.12)
     print_success "默认 Python: $python_version"
@@ -146,9 +186,8 @@ print_next_steps() {
     echo -e "${YELLOW}下一步操作:${NC}"
     echo ""
     echo "  1. 重启终端或运行: source ~/.zshrc"
-    echo "  2. 验证安装: python --version"
+    echo "  2. 验证安装: python3 --version"
     echo "  3. 创建项目: uv init my-project && cd my-project"
-    echo "  4. 安装 Kimi CLI: uv tool install kimi-cli"
     echo ""
     echo -e "${YELLOW}uv 常用命令:${NC}"
     echo "  uv python install 3.11   # 安装 Python 版本"
@@ -158,10 +197,14 @@ print_next_steps() {
     echo "  uv run python app.py     # 运行脚本"
     echo "  uv tool install black    # 安装全局工具"
     echo ""
+    echo -e "${YELLOW}提示:${NC} 使用 'python3' 命令而不是 'python'"
+    echo ""
 }
 
 main() {
     print_banner
+    check_broken_python
+    echo ""
     check_homebrew
     echo ""
     install_uv
