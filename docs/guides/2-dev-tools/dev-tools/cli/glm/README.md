@@ -6,13 +6,45 @@
 
 | 模型 | 适用场景 | 上下文窗口 | 最大输出 |
 |------|----------|------------|----------|
-| GLM-5.1 | 复杂推理任务（推荐） | 204K | 131K |
-| GLM-4.7 | 通用任务 | 204K | 131K |
-| GLM-4.5-Air | 快速响应任务 | 128K | 4K |
+| glm-5.1 | 复杂推理任务（推荐） | 204K | 131K |
+| glm-4.7 | 通用任务 | 204K | 131K |
+| glm-4.5-air | 快速响应任务 | 128K | 4K |
 
-## Claude Code 配置
+---
 
-### 默认模型映射
+## 快速配置（推荐）
+
+使用 **Coding Tool Helper** 一键自动配置 GLM Coding Plan：
+
+```bash
+npx @z_ai/coding-helper
+```
+
+### Coding Helper 功能
+
+| 命令 | 说明 |
+|------|------|
+| `chelper` | 启动交互式配置向导 |
+| `chelper auth glm_coding_plan_china <token>` | 使用中国区 API Key |
+| `chelper auth reload claude` | 重新加载配置到 Claude Code |
+| `chelper doctor` | 检查系统配置状态 |
+
+### 配置流程
+
+1. 运行 `npx @z_ai/coding-helper`
+2. 选择语言（中文/English）
+3. 选择方案（中国区/全球区）
+4. 输入 API Key
+5. 选择要配置的工具（Claude Code、OpenCode 等）
+6. 自动完成配置
+
+---
+
+## 手动配置
+
+### Claude Code
+
+#### 默认模型映射
 
 Claude Code 内部模型环境变量与 GLM 模型默认对应关系：
 
@@ -22,7 +54,7 @@ Claude Code 内部模型环境变量与 GLM 模型默认对应关系：
 | ANTHROPIC_DEFAULT_SONNET_MODEL | glm-4.7 |
 | ANTHROPIC_DEFAULT_HAIKU_MODEL | glm-4.5-air |
 
-### 切换到 GLM-5.1
+### 切换到 glm-5.1
 
 编辑配置文件 `~/.claude/settings.json`：
 
@@ -56,9 +88,9 @@ Claude Code 内部模型环境变量与 GLM 模型默认对应关系：
 
 ---
 
-## OpenClaw 配置
+### OpenClaw
 
-### 添加 GLM-5.1 模型
+#### 添加 glm-5.1 模型
 
 编辑 `~/.openclaw/openclaw.json`，在 `models.providers.zai.models` 数组中添加：
 
@@ -74,7 +106,7 @@ Claude Code 内部模型环境变量与 GLM 模型默认对应关系：
 }
 ```
 
-### 设置默认模型
+#### 设置默认模型
 
 修改 `agents.defaults.model.primary`：
 
@@ -95,7 +127,7 @@ Claude Code 内部模型环境变量与 GLM 模型默认对应关系：
 }
 ```
 
-### 重启网关
+#### 重启网关
 
 ```bash
 openclaw gateway restart
@@ -103,7 +135,7 @@ openclaw gateway restart
 
 ---
 
-## Cline 配置
+### Cline
 
 | 配置项 | 值 |
 |--------|-----|
@@ -115,20 +147,6 @@ openclaw gateway restart
 | Support Images | 取消勾选 |
 
 ---
-
-## 一键配置脚本
-
-运行配置脚本快速设置 GLM API Key：
-
-```bash
-./setup-glm.sh
-```
-
-或手动设置环境变量：
-
-```bash
-export ZHIPU_API_KEY='your-api-key-here'
-```
 
 ## 获取 API Key
 
